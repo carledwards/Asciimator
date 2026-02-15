@@ -280,6 +280,7 @@ export class TerminalPanel {
   private lastDrawAt = 0;
   private idleTimeout: number | null = null;
   private idleInterval: number | null = null;
+  private isSuspended = false;
 
   constructor(private container: HTMLElement) {
     this.element = document.createElement('div');
@@ -309,10 +310,39 @@ export class TerminalPanel {
     this.element.appendChild(this.contentEl);
     this.container.appendChild(this.element);
 
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
     this.wireEvents();
     this.pushLine(this.pickFromPool(STARTUP_MESSAGES));
     this.resetIdleTimers();
   }
+
+  private onVisibilityChange = (): void => {
+    this.isSuspended = document.hidden;
+    if (this.isSuspended) {
+      // Drop any pending chatter while hidden; keep current lines as-is.
+      this.queue = [];
+      this.typing = false;
+      this.typingEntry = null;
+      this.typingIndex = 0;
+      if (this.typingTimer) {
+        window.clearTimeout(this.typingTimer);
+        this.typingTimer = null;
+      }
+      if (this.idleTimeout) {
+        window.clearTimeout(this.idleTimeout);
+        this.idleTimeout = null;
+      }
+      if (this.idleInterval) {
+        window.clearInterval(this.idleInterval);
+        this.idleInterval = null;
+      }
+      this.render();
+      return;
+    }
+    // Resume normal behavior without replaying anything that happened while hidden.
+    this.resetIdleTimers();
+    this.kickTypewriter();
+  };
 
   private wireEvents(): void {
     eventBus.on(Events.TOOL_CHANGED, (tool: unknown) => {
@@ -371,6 +401,7 @@ export class TerminalPanel {
   }
 
   private pushLine(message: string, kind: LineKind = 'system'): void {
+    if (this.isSuspended) return;
     const prefixed = `> ${message}`;
     const lastRendered = this.lines[this.lines.length - 1]?.text;
     const lastQueued = this.queue[this.queue.length - 1]?.text;
@@ -395,6 +426,10 @@ export class TerminalPanel {
   }
 
   private kickTypewriter(): void {
+    if (this.isSuspended) {
+      this.render();
+      return;
+    }
     if (this.typing || this.queue.length === 0) {
       this.render();
       return;
@@ -407,6 +442,7 @@ export class TerminalPanel {
   }
 
   private scheduleNextChar(delay: number = TYPE_CHAR_MS): void {
+    if (this.isSuspended) return;
     if (this.typingTimer) {
       window.clearTimeout(this.typingTimer);
       this.typingTimer = null;
@@ -415,6 +451,7 @@ export class TerminalPanel {
   }
 
   private stepTypewriter(): void {
+    if (this.isSuspended) return;
     if (!this.typing || !this.typingEntry) return;
 
     if (this.typingIndex < this.typingEntry.text.length) {
@@ -528,6 +565,7 @@ export class TerminalPanel {
   }
 
   private resetIdleTimers(): void {
+    if (this.isSuspended) return;
     if (this.idleTimeout) {
       window.clearTimeout(this.idleTimeout);
       this.idleTimeout = null;
