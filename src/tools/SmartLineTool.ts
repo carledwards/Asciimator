@@ -5,7 +5,7 @@ import { CanvasRenderer } from '../rendering/CanvasRenderer';
 import { eventBus, Events } from '../core/EventBus';
 import type { UndoRedoManager } from '../state/UndoRedoManager';
 import { CellChangeCommand, CellChange } from '../state/Command';
-import { N, S, E, W, resolveChar, BoxStyle } from './BoxDrawing';
+import { N, S, E, W, resolveChar, BoxStyle, isBoxChar, charToConnections } from './BoxDrawing';
 
 export class SmartLineTool implements Tool {
   private startPos: Position | null = null;
@@ -81,39 +81,87 @@ export class SmartLineTool implements Tool {
     });
   }
 
-  private getSmartLinePoints(start: Position, end: Position): Array<{ pos: Position; connections: number }> {
+  private getSmartLinePoints(start: Position, end: Position): Position[] {
     const dx = Math.abs(end.x - start.x);
     const dy = Math.abs(end.y - start.y);
     const isHorizontal = dx >= dy;
-    const points: Array<{ pos: Position; connections: number }> = [];
+    const points: Position[] = [];
 
     if (isHorizontal) {
       const minX = Math.min(start.x, end.x);
       const maxX = Math.max(start.x, end.x);
       for (let x = minX; x <= maxX; x++) {
-        points.push({ pos: { x, y: start.y }, connections: E | W });
+        points.push({ x, y: start.y });
       }
     } else {
       const minY = Math.min(start.y, end.y);
       const maxY = Math.max(start.y, end.y);
       for (let y = minY; y <= maxY; y++) {
-        points.push({ pos: { x: start.x, y }, connections: N | S });
+        points.push({ x: start.x, y });
       }
     }
 
     return points;
   }
 
+  private getPlannedConnections(points: Position[]): Map<string, number> {
+    const map = new Map<string, number>();
+    for (let i = 0; i < points.length; i++) {
+      const p = points[i];
+      let conn = 0;
+      const prev = i > 0 ? points[i - 1] : null;
+      const next = i < points.length - 1 ? points[i + 1] : null;
+      if (prev) {
+        if (prev.x === p.x - 1 && prev.y === p.y) conn |= W;
+        if (prev.x === p.x + 1 && prev.y === p.y) conn |= E;
+        if (prev.x === p.x && prev.y === p.y - 1) conn |= N;
+        if (prev.x === p.x && prev.y === p.y + 1) conn |= S;
+      }
+      if (next) {
+        if (next.x === p.x - 1 && next.y === p.y) conn |= W;
+        if (next.x === p.x + 1 && next.y === p.y) conn |= E;
+        if (next.x === p.x && next.y === p.y - 1) conn |= N;
+        if (next.x === p.x && next.y === p.y + 1) conn |= S;
+      }
+      if (conn === 0) conn = E | W; // single-cell degenerate line
+      map.set(`${p.x},${p.y}`, conn);
+    }
+    return map;
+  }
+
+  private getNeighborConnections(layer: ReturnType<Document['layerManager']['getActiveLayer']>, x: number, y: number): number {
+    if (!layer) return 0;
+    const dirs = [
+      { bit: N, dx: 0, dy: -1, opposite: S },
+      { bit: S, dx: 0, dy: 1, opposite: N },
+      { bit: E, dx: 1, dy: 0, opposite: W },
+      { bit: W, dx: -1, dy: 0, opposite: E },
+    ];
+    let conn = 0;
+    for (const d of dirs) {
+      const n = layer.getCell(x + d.dx, y + d.dy);
+      if (!n || !isBoxChar(n.char)) continue;
+      const info = charToConnections(n.char);
+      if (info.style !== this.boxStyle) continue;
+      if (info.connections & d.opposite) {
+        conn |= d.bit;
+      }
+    }
+    return conn;
+  }
+
   private showPreview(endPos: Position): void {
     const points = this.getSmartLinePoints(this.startPos!, endPos);
+    const planned = this.getPlannedConnections(points);
     const preview = new Map<string, Cell>();
     const layer = this.doc.layerManager.getActiveLayer();
 
-    for (const { pos, connections } of points) {
+    for (const pos of points) {
       const existing = layer?.getCell(pos.x, pos.y);
-      const ch = resolveChar(existing?.char, connections, this.boxStyle);
+      const connections = planned.get(`${pos.x},${pos.y}`) ?? (E | W);
+      const merged = connections | this.getNeighborConnections(layer, pos.x, pos.y);
       preview.set(`${pos.x},${pos.y}`, {
-        char: ch,
+        char: resolveChar(existing?.char, merged || connections, this.boxStyle),
         attributes: { foreground: this.foreground, background: this.background },
       });
     }
@@ -125,11 +173,14 @@ export class SmartLineTool implements Tool {
     if (!layer || layer.locked) return;
 
     const points = this.getSmartLinePoints(start, end);
+    const planned = this.getPlannedConnections(points);
     const changes: CellChange[] = [];
 
-    for (const { pos, connections } of points) {
+    for (const pos of points) {
       const oldCell = layer.getCell(pos.x, pos.y);
-      const ch = resolveChar(oldCell?.char, connections, this.boxStyle);
+      const connections = planned.get(`${pos.x},${pos.y}`) ?? (E | W);
+      const merged = connections | this.getNeighborConnections(layer, pos.x, pos.y);
+      const ch = resolveChar(oldCell?.char, merged || connections, this.boxStyle);
       const newCell: Cell = {
         char: ch,
         attributes: { foreground: this.foreground, background: this.background },
