@@ -6,7 +6,7 @@ Draw with layers, palette-based colors, box-drawing tools, and selection workflo
 
 Live site: [asciimator.com](https://asciimator.com)
 
-![Asciimator screenshot](docs/screenshot.png)
+![Asciimator screenshot](assets/screenshot.png)
 
 ## Features
 
