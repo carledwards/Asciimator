@@ -26,12 +26,45 @@ export class Toolbar {
         const icon = document.createElement('span');
         icon.className = 'tool-select-icon';
         btn.appendChild(icon);
+      } else if (tool.getName() === 'pencil') {
+        const icon = document.createElement('span');
+        icon.className = 'tool-pencil-icon-file';
+        btn.appendChild(icon);
+      } else if (tool.getName() === 'line') {
+        const icon = document.createElement('span');
+        icon.className = 'tool-line-icon-file';
+        btn.appendChild(icon);
+      } else if (tool.getName() === 'rectangle') {
+        const icon = document.createElement('span');
+        icon.className = 'tool-rectangle-icon-file';
+        btn.appendChild(icon);
+      } else if (tool.getName() === 'filled-rectangle') {
+        const icon = document.createElement('span');
+        icon.className = 'tool-filled-rectangle-icon-file';
+        btn.appendChild(icon);
+      } else if (tool.getName() === 'circle') {
+        const icon = document.createElement('span');
+        icon.className = 'tool-circle-icon-file';
+        btn.appendChild(icon);
+      } else if (tool.getName() === 'filled-circle') {
+        const icon = document.createElement('span');
+        icon.className = 'tool-filled-circle-icon-file';
+        btn.appendChild(icon);
+      } else if (tool.getName() === 'smartline') {
+        const icon = document.createElement('span');
+        icon.className = 'tool-smartline-icon-file';
+        btn.appendChild(icon);
+      } else if (tool.getName() === 'smartbox') {
+        const icon = document.createElement('span');
+        icon.className = 'tool-smartbox-icon-file';
+        btn.appendChild(icon);
       } else if (tool.getName() === 'fill') {
         const icon = document.createElement('span');
-        icon.className = 'tool-fill-icon';
-        const drop = document.createElement('span');
-        drop.className = 'tool-fill-drop';
-        icon.appendChild(drop);
+        icon.className = 'tool-fill-icon-file';
+        btn.appendChild(icon);
+      } else if (tool.getName() === 'dropper') {
+        const icon = document.createElement('span');
+        icon.className = 'tool-dropper-icon-file';
         btn.appendChild(icon);
       } else {
         btn.textContent = tool.getIcon();

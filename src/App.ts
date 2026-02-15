@@ -9,12 +9,15 @@ import { ToolManager } from './tools/ToolManager';
 import { PencilTool } from './tools/PencilTool';
 import { LineTool } from './tools/LineTool';
 import { RectangleTool } from './tools/RectangleTool';
+import { FilledRectangleTool } from './tools/FilledRectangleTool';
+import { EllipseTool } from './tools/EllipseTool';
 import { FillTool } from './tools/FillTool';
 import { TextTool } from './tools/TextTool';
 import { EraserTool } from './tools/EraserTool';
 import { SelectionTool } from './tools/SelectionTool';
 import { SmartLineTool } from './tools/SmartLineTool';
 import { SmartBoxTool } from './tools/SmartBoxTool';
+import { DropperTool } from './tools/DropperTool';
 import { UndoRedoManager } from './state/UndoRedoManager';
 import { Clipboard } from './state/Clipboard';
 import { TabManager, TabSession } from './state/TabManager';
@@ -83,9 +86,24 @@ export class App {
     rect.setUndoManager(this.undoManager);
     this.toolManager.registerTool(rect);
 
+    const filledRect = new FilledRectangleTool(this.doc, this.canvasRenderer);
+    filledRect.setUndoManager(this.undoManager);
+    this.toolManager.registerTool(filledRect);
+
+    const circle = new EllipseTool(this.doc, this.canvasRenderer, 'circle', 'C', 'Circle', false);
+    circle.setUndoManager(this.undoManager);
+    this.toolManager.registerTool(circle);
+
+    const filledCircle = new EllipseTool(this.doc, this.canvasRenderer, 'filled-circle', 'O', 'Filled Circle', true);
+    filledCircle.setUndoManager(this.undoManager);
+    this.toolManager.registerTool(filledCircle);
+
     const fill = new FillTool(this.doc);
     fill.setUndoManager(this.undoManager);
     this.toolManager.registerTool(fill);
+
+    const dropper = new DropperTool(this.doc, this.compositeBuffer);
+    this.toolManager.registerTool(dropper);
 
     const text = new TextTool(this.doc);
     text.setUndoManager(this.undoManager);

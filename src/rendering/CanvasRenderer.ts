@@ -3,6 +3,11 @@ import { DOS_PALETTE, getPaletteColor, isTransparent } from '../core/DosColors';
 import { eventBus, Events } from '../core/EventBus';
 import { CompositeBuffer } from './CompositeBuffer';
 
+interface ToolDragInfo {
+  position: Position;
+  lines: string[];
+}
+
 // Box-drawing characters rendered as canvas line segments for pixel-perfect connections.
 // Each entry is an array of [x1, y1, x2, y2] in normalized [0,1] cell coordinates.
 type LineSeg = [number, number, number, number];
@@ -63,6 +68,7 @@ export class CanvasRenderer {
 
   // Tool preview overlay
   private previewCells: Map<string, Cell> = new Map();
+  private toolDragInfo: ToolDragInfo | null = null;
 
   // Move guide lines
   private moveGuides = false;
@@ -87,6 +93,10 @@ export class CanvasRenderer {
     });
     eventBus.on(Events.GRID_TOGGLED, (show: unknown) => {
       this.showGrid = show as boolean;
+      this.markDirty();
+    });
+    eventBus.on<ToolDragInfo | null>(Events.TOOL_DRAG_INFO, (info) => {
+      this.toolDragInfo = info;
       this.markDirty();
     });
   }
@@ -216,6 +226,10 @@ export class CanvasRenderer {
       }
     }
 
+    if (this.toolDragInfo) {
+      this.drawToolDragInfo();
+    }
+
     // Draw cursor overlay
     if (this.cursorPosition && this.cursorAttributes) {
       this.drawCursor();
@@ -331,9 +345,9 @@ export class CanvasRenderer {
     const canvasW = this.canvas.width;
     const canvasH = this.canvas.height;
 
-    const guideColor = 'rgba(0, 200, 255, 0.5)';
+    const guideColor = 'rgba(0, 220, 255, 0.85)';
     this.ctx.strokeStyle = guideColor;
-    this.ctx.lineWidth = 1;
+    this.ctx.lineWidth = 1.5;
     this.ctx.setLineDash([4, 4]);
 
     // Top: vertical from canvas top to selection top
@@ -376,7 +390,7 @@ export class CanvasRenderer {
     const leftDist = x1;
     const rightDist = docWidth - x2 - 1;
 
-    const labelFontSize = Math.max(9, Math.floor(this.charHeight * 0.45));
+    const labelFontSize = Math.max(11, Math.floor(this.charHeight * 0.45) + 2);
     this.ctx.font = `bold ${labelFontSize}px "Courier New", "Consolas", monospace`;
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
@@ -412,6 +426,41 @@ export class CanvasRenderer {
 
     this.ctx.fillStyle = 'rgba(0, 200, 255, 0.9)';
     this.ctx.fillText(text, cx, cy);
+  }
+
+  private drawToolDragInfo(): void {
+    if (!this.toolDragInfo || this.toolDragInfo.lines.length === 0) return;
+    const padX = 6;
+    const padY = 4;
+    const lineGap = 2;
+    const fontSize = Math.max(12, Math.floor(this.charHeight * 0.5) + 2);
+    const x = this.toolDragInfo.position.x * this.charWidth + 10;
+    const y = this.toolDragInfo.position.y * this.charHeight + 10;
+
+    this.ctx.font = `bold ${fontSize}px "Courier New", "Consolas", monospace`;
+    this.ctx.textAlign = 'left';
+    this.ctx.textBaseline = 'top';
+
+    const lineHeights = this.toolDragInfo.lines.map(() => fontSize);
+    const textW = Math.max(...this.toolDragInfo.lines.map(t => this.ctx.measureText(t).width));
+    const textH = lineHeights.reduce((a, b) => a + b, 0) + lineGap * (lineHeights.length - 1);
+    const boxW = Math.ceil(textW + padX * 2);
+    const boxH = Math.ceil(textH + padY * 2);
+
+    const clampedX = Math.max(2, Math.min(x, this.canvas.width - boxW - 2));
+    const clampedY = Math.max(2, Math.min(y, this.canvas.height - boxH - 2));
+
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    this.ctx.beginPath();
+    this.ctx.roundRect(clampedX, clampedY, boxW, boxH, 4);
+    this.ctx.fill();
+
+    this.ctx.fillStyle = 'rgba(0, 200, 255, 0.95)';
+    let ty = clampedY + padY;
+    for (const line of this.toolDragInfo.lines) {
+      this.ctx.fillText(line, clampedX + padX, ty);
+      ty += fontSize + lineGap;
+    }
   }
 
   private drawGrid(w: number, h: number): void {

@@ -10,6 +10,19 @@ export class ColorPicker {
     this.element = document.createElement('div');
     this.element.className = 'color-picker';
     container.appendChild(this.element);
+    eventBus.on(Events.COLOR_CHANGED, (data: unknown) => {
+      const d = data as { foreground?: number; background?: number };
+      let changed = false;
+      if (d.foreground !== undefined && d.foreground !== this.foreground) {
+        this.foreground = d.foreground;
+        changed = true;
+      }
+      if (d.background !== undefined && d.background !== this.background) {
+        this.background = d.background;
+        changed = true;
+      }
+      if (changed) this.render();
+    });
     this.render();
   }
 

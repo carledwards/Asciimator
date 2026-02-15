@@ -633,35 +633,103 @@ html, body {
   border-color: white;
 }
 
-/* === Fill Tool Icon === */
-.tool-fill-icon {
+/* === Pencil Tool Icon === */
+.tool-pencil-icon-file {
   display: inline-block;
-  width: 12px;
-  height: 10px;
-  background: var(--text-primary);
-  border-radius: 1px 1px 2px 2px;
-  position: relative;
-  transform: rotate(-30deg);
-  margin-top: -2px;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask: url('/icons/pencil.svg') center / contain no-repeat;
+  mask: url('/icons/pencil.svg') center / contain no-repeat;
 }
 
-.tool-fill-drop {
-  position: absolute;
-  bottom: -5px;
-  right: -1px;
-  width: 4px;
-  height: 4px;
-  background: var(--text-primary);
-  border-radius: 50% 50% 50% 0;
-  transform: rotate(45deg);
+/* === Line Tool Icon === */
+.tool-line-icon-file {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask: url('/icons/line.svg') center / contain no-repeat;
+  mask: url('/icons/line.svg') center / contain no-repeat;
 }
 
-.toolbar-btn.active .tool-fill-icon {
-  background: white;
+/* === Rectangle Tool Icon === */
+.tool-rectangle-icon-file {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask: url('/icons/rectangle.svg') center / contain no-repeat;
+  mask: url('/icons/rectangle.svg') center / contain no-repeat;
 }
 
-.toolbar-btn.active .tool-fill-drop {
-  background: white;
+/* === Filled Rectangle Tool Icon === */
+.tool-filled-rectangle-icon-file {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask: url('/icons/rectangle-filled.svg') center / contain no-repeat;
+  mask: url('/icons/rectangle-filled.svg') center / contain no-repeat;
+}
+
+/* === Circle Tool Icons === */
+.tool-circle-icon-file {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask: url('/icons/circle.svg') center / contain no-repeat;
+  mask: url('/icons/circle.svg') center / contain no-repeat;
+}
+
+.tool-filled-circle-icon-file {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask: url('/icons/circle-filled.svg') center / contain no-repeat;
+  mask: url('/icons/circle-filled.svg') center / contain no-repeat;
+}
+
+/* === Smart Line Tool Icon === */
+.tool-smartline-icon-file {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask: url('/icons/smartline.svg') center / contain no-repeat;
+  mask: url('/icons/smartline.svg') center / contain no-repeat;
+}
+
+/* === Smart Box Tool Icon === */
+.tool-smartbox-icon-file {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask: url('/icons/smartbox.svg') center / contain no-repeat;
+  mask: url('/icons/smartbox.svg') center / contain no-repeat;
+}
+
+/* === Fill Tool Icon === */
+.tool-fill-icon-file {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask: url('/icons/fill.svg') center / contain no-repeat;
+  mask: url('/icons/fill.svg') center / contain no-repeat;
+}
+
+/* === Dropper Tool Icon === */
+.tool-dropper-icon-file {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask: url('/icons/dropper.svg') center / contain no-repeat;
+  mask: url('/icons/dropper.svg') center / contain no-repeat;
 }
 
 /* === Submenu === */

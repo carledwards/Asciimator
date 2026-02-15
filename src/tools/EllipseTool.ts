@@ -6,7 +6,7 @@ import { eventBus, Events } from '../core/EventBus';
 import type { UndoRedoManager } from '../state/UndoRedoManager';
 import { CellChangeCommand, CellChange } from '../state/Command';
 
-export class LineTool implements Tool {
+export class EllipseTool implements Tool {
   private startPos: Position | null = null;
   private isDrawing = false;
   private currentChar = ' ';
@@ -14,7 +14,14 @@ export class LineTool implements Tool {
   private background = 0;
   private undoManager!: UndoRedoManager;
 
-  constructor(private doc: Document, private renderer: CanvasRenderer) {
+  constructor(
+    private doc: Document,
+    private renderer: CanvasRenderer,
+    private toolName: 'circle' | 'filled-circle',
+    private toolShortcut: string,
+    private commandLabel: string,
+    private filled: boolean,
+  ) {
     eventBus.on(Events.CHAR_CHANGED, (ch: unknown) => { this.currentChar = ch as string; });
     eventBus.on(Events.COLOR_CHANGED, (data: unknown) => {
       const d = data as { foreground?: number; background?: number };
@@ -32,9 +39,9 @@ export class LineTool implements Tool {
     this.renderer.clearPreview();
   }
 
-  getName() { return 'line'; }
-  getIcon() { return '╱'; }
-  getShortcut() { return 'L'; }
+  getName() { return this.toolName; }
+  getIcon() { return ''; }
+  getShortcut() { return this.toolShortcut; }
 
   onMouseDown(pos: Position, _modifiers: InputModifiers): void {
     this.startPos = pos;
@@ -52,7 +59,7 @@ export class LineTool implements Tool {
     if (!this.isDrawing || !this.startPos) return;
     this.renderer.clearPreview();
     eventBus.emit(Events.TOOL_DRAG_INFO, null);
-    this.commitLine(this.startPos, pos);
+    this.commitEllipse(this.startPos, pos);
     this.startPos = null;
     this.isDrawing = false;
   }
@@ -71,34 +78,70 @@ export class LineTool implements Tool {
     if (!this.startPos) return;
     const w = Math.abs(endPos.x - this.startPos.x) + 1;
     const h = Math.abs(endPos.y - this.startPos.y) + 1;
-    const len = this.getLinePoints(this.startPos, endPos).length;
+    const rx = (w / 2).toFixed(1);
+    const ry = (h / 2).toFixed(1);
     eventBus.emit(Events.TOOL_DRAG_INFO, {
       position: endPos,
-      lines: [`${w} x ${h}`, `len ${len}`],
+      lines: [`${w} x ${h}`, `r ${rx}, ${ry}`],
     });
   }
 
-  private getLinePoints(p0: Position, p1: Position): Position[] {
-    const points: Position[] = [];
-    let x0 = p0.x, y0 = p0.y, x1 = p1.x, y1 = p1.y;
-    const dx = Math.abs(x1 - x0);
-    const dy = Math.abs(y1 - y0);
-    const sx = x0 < x1 ? 1 : -1;
-    const sy = y0 < y1 ? 1 : -1;
-    let err = dx - dy;
+  private isInsideEllipse(
+    x: number,
+    y: number,
+    cx: number,
+    cy: number,
+    rx: number,
+    ry: number,
+  ): boolean {
+    if (rx <= 0 || ry <= 0) return false;
+    const nx = (x + 0.5 - cx) / rx;
+    const ny = (y + 0.5 - cy) / ry;
+    return nx * nx + ny * ny <= 1;
+  }
 
-    while (true) {
-      points.push({ x: x0, y: y0 });
-      if (x0 === x1 && y0 === y1) break;
-      const e2 = 2 * err;
-      if (e2 > -dy) { err -= dy; x0 += sx; }
-      if (e2 < dx) { err += dx; y0 += sy; }
+  private getEllipsePoints(p0: Position, p1: Position): Position[] {
+    const x1 = Math.min(p0.x, p1.x);
+    const y1 = Math.min(p0.y, p1.y);
+    const x2 = Math.max(p0.x, p1.x);
+    const y2 = Math.max(p0.y, p1.y);
+
+    const cx = (x1 + x2 + 1) / 2;
+    const cy = (y1 + y2 + 1) / 2;
+    const rx = (x2 - x1 + 1) / 2;
+    const ry = (y2 - y1 + 1) / 2;
+
+    const points: Position[] = [];
+    const seen = new Set<string>();
+
+    for (let y = y1; y <= y2; y++) {
+      for (let x = x1; x <= x2; x++) {
+        const outer = this.isInsideEllipse(x, y, cx, cy, rx, ry);
+        if (!outer) continue;
+
+        let include = false;
+        if (this.filled) {
+          include = true;
+        } else if (rx <= 1 || ry <= 1) {
+          include = true;
+        } else {
+          const inner = this.isInsideEllipse(x, y, cx, cy, rx - 1, ry - 1);
+          include = !inner;
+        }
+
+        if (!include) continue;
+        const key = `${x},${y}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        points.push({ x, y });
+      }
     }
+
     return points;
   }
 
   private showPreview(endPos: Position): void {
-    const points = this.getLinePoints(this.startPos!, endPos);
+    const points = this.getEllipsePoints(this.startPos!, endPos);
     const preview = new Map<string, Cell>();
     const cell: Cell = {
       char: this.currentChar,
@@ -110,11 +153,11 @@ export class LineTool implements Tool {
     this.renderer.setPreviewCells(preview);
   }
 
-  private commitLine(start: Position, end: Position): void {
+  private commitEllipse(start: Position, end: Position): void {
     const layer = this.doc.layerManager.getActiveLayer();
     if (!layer || layer.locked) return;
 
-    const points = this.getLinePoints(start, end);
+    const points = this.getEllipsePoints(start, end);
     const changes: CellChange[] = [];
     const newCell: Cell = {
       char: this.currentChar,
@@ -132,7 +175,7 @@ export class LineTool implements Tool {
     }
 
     if (changes.length > 0 && this.undoManager) {
-      this.undoManager.execute(new CellChangeCommand(this.doc, layer.id, changes, 'Line'));
+      this.undoManager.execute(new CellChangeCommand(this.doc, layer.id, changes, this.commandLabel));
     }
     eventBus.emit(Events.DOCUMENT_CHANGED, null);
     eventBus.emit(Events.RENDER_REQUEST, null);

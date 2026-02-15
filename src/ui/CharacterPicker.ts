@@ -31,6 +31,13 @@ export class CharacterPicker {
     this.element = document.createElement('div');
     this.element.className = 'char-picker';
     container.appendChild(this.element);
+    eventBus.on(Events.CHAR_CHANGED, (ch: unknown) => {
+      const next = (ch as string) ?? ' ';
+      if (next !== this.selectedChar) {
+        this.selectedChar = next;
+        this.render();
+      }
+    });
     this.render();
 
     eventBus.on(Events.TOOL_CHANGED, (name: unknown) => {

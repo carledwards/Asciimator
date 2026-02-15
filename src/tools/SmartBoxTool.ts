@@ -42,16 +42,19 @@ export class SmartBoxTool implements Tool {
   onMouseDown(pos: Position, _modifiers: InputModifiers): void {
     this.startPos = pos;
     this.isDrawing = true;
+    this.updateDragInfo(pos);
   }
 
   onMouseDrag(pos: Position): void {
     if (!this.isDrawing || !this.startPos) return;
     this.showPreview(pos);
+    this.updateDragInfo(pos);
   }
 
   onMouseUp(pos: Position): void {
     if (!this.isDrawing || !this.startPos) return;
     this.renderer.clearPreview();
+    eventBus.emit(Events.TOOL_DRAG_INFO, null);
     this.commitBox(this.startPos, pos);
     this.startPos = null;
     this.isDrawing = false;
@@ -64,6 +67,18 @@ export class SmartBoxTool implements Tool {
     this.isDrawing = false;
     this.startPos = null;
     this.renderer.clearPreview();
+    eventBus.emit(Events.TOOL_DRAG_INFO, null);
+  }
+
+  private updateDragInfo(endPos: Position): void {
+    if (!this.startPos) return;
+    const w = Math.abs(endPos.x - this.startPos.x) + 1;
+    const h = Math.abs(endPos.y - this.startPos.y) + 1;
+    const area = w * h;
+    eventBus.emit(Events.TOOL_DRAG_INFO, {
+      position: endPos,
+      lines: [`${w} x ${h}`, `area ${area}`],
+    });
   }
 
   private getSmartBoxPoints(p0: Position, p1: Position): Array<{ pos: Position; connections: number }> {

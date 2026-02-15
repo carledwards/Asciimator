@@ -6,7 +6,7 @@ import { eventBus, Events } from '../core/EventBus';
 import type { UndoRedoManager } from '../state/UndoRedoManager';
 import { CellChangeCommand, CellChange } from '../state/Command';
 
-export class LineTool implements Tool {
+export class FilledRectangleTool implements Tool {
   private startPos: Position | null = null;
   private isDrawing = false;
   private currentChar = ' ';
@@ -32,9 +32,9 @@ export class LineTool implements Tool {
     this.renderer.clearPreview();
   }
 
-  getName() { return 'line'; }
-  getIcon() { return '╱'; }
-  getShortcut() { return 'L'; }
+  getName() { return 'filled-rectangle'; }
+  getIcon() { return ''; }
+  getShortcut() { return 'U'; }
 
   onMouseDown(pos: Position, _modifiers: InputModifiers): void {
     this.startPos = pos;
@@ -52,7 +52,7 @@ export class LineTool implements Tool {
     if (!this.isDrawing || !this.startPos) return;
     this.renderer.clearPreview();
     eventBus.emit(Events.TOOL_DRAG_INFO, null);
-    this.commitLine(this.startPos, pos);
+    this.commitRect(this.startPos, pos);
     this.startPos = null;
     this.isDrawing = false;
   }
@@ -71,34 +71,31 @@ export class LineTool implements Tool {
     if (!this.startPos) return;
     const w = Math.abs(endPos.x - this.startPos.x) + 1;
     const h = Math.abs(endPos.y - this.startPos.y) + 1;
-    const len = this.getLinePoints(this.startPos, endPos).length;
+    const area = w * h;
     eventBus.emit(Events.TOOL_DRAG_INFO, {
       position: endPos,
-      lines: [`${w} x ${h}`, `len ${len}`],
+      lines: [`${w} x ${h}`, `area ${area}`],
     });
   }
 
-  private getLinePoints(p0: Position, p1: Position): Position[] {
+  private getRectPoints(p0: Position, p1: Position): Position[] {
+    const x1 = Math.min(p0.x, p1.x);
+    const y1 = Math.min(p0.y, p1.y);
+    const x2 = Math.max(p0.x, p1.x);
+    const y2 = Math.max(p0.y, p1.y);
     const points: Position[] = [];
-    let x0 = p0.x, y0 = p0.y, x1 = p1.x, y1 = p1.y;
-    const dx = Math.abs(x1 - x0);
-    const dy = Math.abs(y1 - y0);
-    const sx = x0 < x1 ? 1 : -1;
-    const sy = y0 < y1 ? 1 : -1;
-    let err = dx - dy;
 
-    while (true) {
-      points.push({ x: x0, y: y0 });
-      if (x0 === x1 && y0 === y1) break;
-      const e2 = 2 * err;
-      if (e2 > -dy) { err -= dy; x0 += sx; }
-      if (e2 < dx) { err += dx; y0 += sy; }
+    for (let y = y1; y <= y2; y++) {
+      for (let x = x1; x <= x2; x++) {
+        points.push({ x, y });
+      }
     }
+
     return points;
   }
 
   private showPreview(endPos: Position): void {
-    const points = this.getLinePoints(this.startPos!, endPos);
+    const points = this.getRectPoints(this.startPos!, endPos);
     const preview = new Map<string, Cell>();
     const cell: Cell = {
       char: this.currentChar,
@@ -110,11 +107,11 @@ export class LineTool implements Tool {
     this.renderer.setPreviewCells(preview);
   }
 
-  private commitLine(start: Position, end: Position): void {
+  private commitRect(start: Position, end: Position): void {
     const layer = this.doc.layerManager.getActiveLayer();
     if (!layer || layer.locked) return;
 
-    const points = this.getLinePoints(start, end);
+    const points = this.getRectPoints(start, end);
     const changes: CellChange[] = [];
     const newCell: Cell = {
       char: this.currentChar,
@@ -132,7 +129,7 @@ export class LineTool implements Tool {
     }
 
     if (changes.length > 0 && this.undoManager) {
-      this.undoManager.execute(new CellChangeCommand(this.doc, layer.id, changes, 'Line'));
+      this.undoManager.execute(new CellChangeCommand(this.doc, layer.id, changes, 'Filled Rectangle'));
     }
     eventBus.emit(Events.DOCUMENT_CHANGED, null);
     eventBus.emit(Events.RENDER_REQUEST, null);

@@ -49,4 +49,5 @@ export const Events = {
   TAB_CHANGED: 'tab:changed',
   TAB_LIST_CHANGED: 'tab:list:changed',
   BOX_STYLE_CHANGED: 'boxStyle:changed',
+  TOOL_DRAG_INFO: 'tool:dragInfo',
 } as const;
