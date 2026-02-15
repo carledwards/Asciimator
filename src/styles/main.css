@@ -68,6 +68,10 @@ html, body {
   position: relative;
 }
 
+.menu-spacer {
+  flex: 1;
+}
+
 .menu-label {
   background: none;
   border: none;
@@ -124,6 +128,19 @@ html, body {
 
 .menu-entry:hover .menu-shortcut {
   color: rgba(255,255,255,0.7);
+}
+
+.menu-source-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 3px;
+}
+
+.menu-source-link:hover {
+  color: var(--text-primary);
+  background: var(--bg-light);
 }
 
 /* === Tab Bar === */

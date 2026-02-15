@@ -156,6 +156,18 @@ export class MenuBar {
 
       this.element.appendChild(menuEl);
     }
+
+    const spacer = document.createElement('div');
+    spacer.className = 'menu-spacer';
+    this.element.appendChild(spacer);
+
+    const sourceLink = document.createElement('a');
+    sourceLink.className = 'menu-source-link';
+    sourceLink.href = 'https://github.com/carledwards/Asciimator';
+    sourceLink.target = '_blank';
+    sourceLink.rel = 'noopener noreferrer';
+    sourceLink.textContent = 'GitHub';
+    this.element.appendChild(sourceLink);
   }
 
   private renderMenuItems(container: HTMLElement, items: MenuItem[]): void {
