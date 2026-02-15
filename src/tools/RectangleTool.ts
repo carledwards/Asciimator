@@ -10,7 +10,7 @@ export class RectangleTool implements Tool {
   private startPos: Position | null = null;
   private isDrawing = false;
   private filled = false;
-  private currentChar = ' ';
+  private currentChar = '█';
   private foreground = 15;
   private background = 0;
   private undoManager!: UndoRedoManager;

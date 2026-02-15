@@ -25,7 +25,7 @@ const CHAR_GROUPS = [
 
 export class CharacterPicker {
   private element: HTMLElement;
-  private selectedChar = ' ';
+  private selectedChar = '█';
 
   constructor(private container: HTMLElement) {
     this.element = document.createElement('div');
@@ -57,16 +57,21 @@ export class CharacterPicker {
     // Current char display
     const current = document.createElement('div');
     current.className = 'current-char';
-    current.textContent = this.selectedChar === ' ' ? 'Current: (space)' : `Current: ${this.selectedChar}`;
+    current.textContent = this.selectedChar === ' ' ? 'Current: Space (erase)' : `Current: ${this.selectedChar}`;
     this.element.appendChild(current);
 
     // Space character button
+    const spaceLabel = document.createElement('div');
+    spaceLabel.className = 'char-group-label';
+    spaceLabel.textContent = 'Space (erase)';
+    this.element.appendChild(spaceLabel);
+
     const spaceRow = document.createElement('div');
     spaceRow.className = 'char-grid';
     const spaceCell = document.createElement('div');
     spaceCell.className = `char-cell char-cell-space ${this.selectedChar === ' ' ? 'selected' : ''}`;
     spaceCell.textContent = '␣';
-    spaceCell.title = 'Space (U+0020)';
+    spaceCell.title = 'Space (erase) (U+0020)';
     spaceCell.addEventListener('click', () => {
       this.selectedChar = ' ';
       eventBus.emit(Events.CHAR_CHANGED, ' ');

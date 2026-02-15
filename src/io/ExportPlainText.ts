@@ -18,8 +18,13 @@ function dosToAnsiBg(index: number): number {
   return index < 8 ? 40 + index : 100 + (index - 8);
 }
 
-export function exportPlainText(buffer: CompositeBuffer, region?: ExportRegion, includeAnsi?: boolean): string {
+export function exportPlainText(
+  buffer: CompositeBuffer,
+  region?: ExportRegion,
+  includeAnsi?: boolean,
+): string {
   const cells = buffer.flatten();
+  const transparencyMap = buffer.getTransparencyMap();
   const y1 = region ? region.y1 : 0;
   const y2 = region ? region.y2 : cells.length - 1;
   const x1 = region ? region.x1 : 0;
@@ -29,11 +34,14 @@ export function exportPlainText(buffer: CompositeBuffer, region?: ExportRegion, 
   for (let y = y1; y <= y2; y++) {
     if (y < 0 || y >= cells.length) continue;
     const row = cells[y];
+    const tRow = transparencyMap[y];
     let line = '';
     for (let x = x1; x <= x2; x++) {
       if (x < 0 || x >= row.length) continue;
       const cell = row[x];
-      const ch = cell.char || ' ';
+      const rawCh = cell.char || ' ';
+      const isTransparent = !!(tRow && tRow[x]);
+      const ch = rawCh === ' ' && !isTransparent ? '█' : rawCh;
       if (includeAnsi) {
         const fg = dosToAnsiFg(cell.attributes.foreground);
         const bg = dosToAnsiBg(cell.attributes.background);

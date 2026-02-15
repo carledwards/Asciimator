@@ -6,7 +6,7 @@ import type { UndoRedoManager } from '../state/UndoRedoManager';
 import { CellChangeCommand, CellChange } from '../state/Command';
 
 export class FillTool implements Tool {
-  private currentChar = ' ';
+  private currentChar = '█';
   private foreground = 15;
   private background = 0;
   private undoManager!: UndoRedoManager;

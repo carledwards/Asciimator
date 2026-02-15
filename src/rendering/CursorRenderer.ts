@@ -9,7 +9,7 @@ export class CursorRenderer {
   private autoHideTimeout = 3000;
   private lastMovement = Date.now();
   private autoHideTimer: number | null = null;
-  private currentChar = ' ';
+  private currentChar = '█';
   private activeTool = '';
 
   constructor(

@@ -7,7 +7,7 @@ export class StatusBar {
   private cursorX = 0;
   private cursorY = 0;
   private toolName = 'pencil';
-  private currentChar = ' ';
+  private currentChar = '█';
   private foreground = 15;
   private background = 0;
 

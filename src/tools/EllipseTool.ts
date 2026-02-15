@@ -9,7 +9,7 @@ import { CellChangeCommand, CellChange } from '../state/Command';
 export class EllipseTool implements Tool {
   private startPos: Position | null = null;
   private isDrawing = false;
-  private currentChar = ' ';
+  private currentChar = '█';
   private foreground = 15;
   private background = 0;
   private undoManager!: UndoRedoManager;

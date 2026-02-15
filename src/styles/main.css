@@ -769,7 +769,7 @@ html, body {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 20px;
-  width: 640px;
+  width: 1080px;
   max-width: 90vw;
   max-height: 85vh;
   display: flex;
@@ -781,6 +781,50 @@ html, body {
   margin: 0 0 12px;
   font-size: 16px;
   color: var(--text-primary);
+}
+
+.export-dialog-content {
+  display: flex;
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+}
+
+.export-dialog-controls {
+  width: 360px;
+  flex: 0 0 360px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.export-dialog-preview-pane {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+}
+
+.export-dialog-output-panel {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.export-dialog-panel-title {
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.export-dialog-source-panel {
+  margin-top: 6px;
+  min-height: 0;
 }
 
 .export-dialog-row {
@@ -807,6 +851,7 @@ html, body {
 
 .export-dialog-region {
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .export-dialog-input-group {
@@ -833,7 +878,7 @@ html, body {
 
 .export-dialog-preview {
   flex: 1;
-  min-height: 300px;
+  min-height: 320px;
   background: var(--bg-dark);
   border: 1px solid var(--border);
   color: var(--text-primary);
@@ -845,6 +890,52 @@ html, body {
   margin-bottom: 12px;
   white-space: pre;
   overflow: auto;
+}
+
+.export-dialog-preview-image-wrap {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background:
+    linear-gradient(45deg, #2a2a2a 25%, transparent 25%),
+    linear-gradient(-45deg, #2a2a2a 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #2a2a2a 75%),
+    linear-gradient(-45deg, transparent 75%, #2a2a2a 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+}
+
+.export-dialog-preview-image {
+  max-width: 100%;
+  max-height: 100%;
+  image-rendering: pixelated;
+  border: 1px solid var(--border);
+  background: transparent;
+}
+
+.export-dialog-source-canvas {
+  cursor: default;
+}
+
+@media (max-width: 820px) {
+  .export-dialog {
+    width: 92vw;
+  }
+
+  .export-dialog-content {
+    flex-direction: column;
+  }
+
+  .export-dialog-controls {
+    width: auto;
+    flex: 0 0 auto;
+  }
+
+  .export-dialog-preview-pane {
+    min-height: 260px;
+    flex-direction: column;
+  }
 }
 
 .export-dialog-checkbox {

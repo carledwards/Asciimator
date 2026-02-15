@@ -1,9 +1,9 @@
 import { CompositeBuffer } from '../rendering/CompositeBuffer';
 import { ExportRegion } from './ExportPlainText';
 
-export function exportTypeScript(
+export function exportPython(
   buffer: CompositeBuffer,
-  variableName: string = 'asciiArt',
+  variableName: string = 'ascii_art',
   region?: ExportRegion,
   includeColors?: boolean,
 ): string {
@@ -23,33 +23,39 @@ export function exportTypeScript(
     const tRow = transparencyMap[y];
     let line = '';
     const colorRow: string[] = [];
+
     for (let x = x1; x <= x2; x++) {
       if (x < 0 || x >= row.length) continue;
-      const rawCh = row[x].char || ' ';
+      const cell = row[x];
+      const rawCh = cell.char || ' ';
       const isTransparent = !!(tRow && tRow[x]);
       line += rawCh === ' ' && !isTransparent ? '█' : rawCh;
       if (includeColors) {
-        const fg = row[x].attributes.foreground;
-        const bg = row[x].attributes.background;
-        colorRow.push(`{fg:${fg},bg:${bg}}`);
+        const fg = cell.attributes.foreground;
+        const bg = cell.attributes.background;
+        colorRow.push(`{"fg": ${fg}, "bg": ${bg}}`);
       }
     }
-    lines.push(`  '${line.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`);
+
+    const escaped = line
+      .replace(/\\/g, '\\\\')
+      .replace(/'/g, "\\'");
+
+    lines.push(`    '${escaped}',`);
     if (includeColors) {
-      colorLines.push(`  [${colorRow.join(',')}]`);
+      colorLines.push(`    [${colorRow.join(', ')}],`);
     }
   }
 
-  // Trim trailing empty lines
-  while (lines.length > 0 && lines[lines.length - 1].trim() === "''") {
+  while (lines.length > 0 && lines[lines.length - 1].trim() === "'',") {
     lines.pop();
     if (includeColors) colorLines.pop();
   }
 
-  let output = `const ${variableName}: string[] = [\n${lines.join(',\n')}\n];\n`;
+  let output = `${variableName} = [\n${lines.join('\n')}\n]\n`;
 
   if (includeColors) {
-    output += `\nconst ${variableName}Colors: {fg:number,bg:number}[][] = [\n${colorLines.join(',\n')}\n];\n`;
+    output += `\n${variableName}_colors = [\n${colorLines.join('\n')}\n]\n`;
   }
 
   return output;

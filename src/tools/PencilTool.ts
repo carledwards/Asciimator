@@ -7,7 +7,7 @@ import { CellChangeCommand } from '../state/Command';
 
 export class PencilTool implements Tool {
   private isDrawing = false;
-  private currentChar = ' ';
+  private currentChar = '█';
   private foreground = 15;
   private background = 0;
   private undoManager!: UndoRedoManager;
