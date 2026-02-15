@@ -49,20 +49,25 @@ export class InputManager {
 
   private handleGlobalShortcut(data: KeyDownEvent): boolean {
     const mod = data.modifiers.meta || data.modifiers.ctrl;
+    const keyLower = data.key.toLowerCase();
+    const active = this.toolManager?.getActiveTool();
 
     // Undo: Ctrl/Cmd+Z
-    if (mod && !data.modifiers.shift && data.key === 'z') {
+    if (mod && !data.modifiers.shift && keyLower === 'z') {
+      active?.prepareForUndoRedo?.();
       data.preventDefault();
       eventBus.emit(Events.UNDO, null);
       return true;
     }
     // Redo: Ctrl/Cmd+Shift+Z or Ctrl/Cmd+Y
-    if (mod && data.modifiers.shift && data.key === 'Z') {
+    if (mod && data.modifiers.shift && keyLower === 'z') {
+      active?.prepareForUndoRedo?.();
       data.preventDefault();
       eventBus.emit(Events.REDO, null);
       return true;
     }
-    if (mod && data.key === 'y') {
+    if (mod && keyLower === 'y') {
+      active?.prepareForUndoRedo?.();
       data.preventDefault();
       eventBus.emit(Events.REDO, null);
       return true;
@@ -88,7 +93,6 @@ export class InputManager {
       const toolName = toolMap[data.key.toLowerCase()];
       if (toolName && this.toolManager) {
         // Don't switch tools if text tool is active and typing
-        const active = this.toolManager.getActiveTool();
         if (active?.getName() === 'text' && active.isActive?.()) return false;
         this.toolManager.setActiveTool(toolName);
         return true;

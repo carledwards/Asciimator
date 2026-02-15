@@ -12,5 +12,6 @@ export interface Tool {
   onActivate(): void;
   onDeactivate(): void;
   isActive?(): boolean;
+  prepareForUndoRedo?(): void;
   setDocument?(doc: import('../document/Document').Document): void;
 }

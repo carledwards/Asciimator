@@ -14,6 +14,7 @@ import { LayerPanel } from './LayerPanel';
 import { StatusBar } from './StatusBar';
 import { MenuBar } from './MenuBar';
 import { TabBar } from './TabBar';
+import { TerminalPanel } from './TerminalPanel';
 
 export class UIManager {
   private menuBar!: MenuBar;
@@ -24,6 +25,7 @@ export class UIManager {
   private boxStylePicker!: BoxStylePicker;
   private colorPicker!: ColorPicker;
   private statusBar!: StatusBar;
+  private terminalPanel!: TerminalPanel;
 
   constructor(
     private appElement: HTMLElement,
@@ -71,11 +73,19 @@ export class UIManager {
     mainArea.appendChild(leftPanel);
     this.layerPanel = new LayerPanel(leftPanel, this.doc.layerManager);
 
+    // Center panel (canvas + terminal)
+    const centerPanel = document.createElement('div');
+    centerPanel.id = 'center-panel';
+    mainArea.appendChild(centerPanel);
+
     // Canvas container
     const canvasContainer = document.createElement('div');
     canvasContainer.id = 'canvas-container';
-    mainArea.appendChild(canvasContainer);
+    centerPanel.appendChild(canvasContainer);
     canvasContainer.appendChild(this.canvasRenderer.getCanvas());
+
+    // Terminal panel
+    this.terminalPanel = new TerminalPanel(centerPanel);
 
     // Right panel (char picker + color picker)
     const rightPanel = document.createElement('div');

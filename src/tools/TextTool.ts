@@ -90,6 +90,11 @@ export class TextTool implements Tool {
     this.cursorPos = null;
   }
 
+  prepareForUndoRedo(): void {
+    if (!this.typing) return;
+    this.commitPending();
+  }
+
   private typeChar(ch: string): void {
     if (!this.cursorPos) return;
     const layer = this.doc.layerManager.getActiveLayer();
