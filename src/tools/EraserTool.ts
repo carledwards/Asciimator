@@ -50,7 +50,7 @@ export class EraserTool implements Tool {
 
   private eraseAt(pos: Position): void {
     const layer = this.doc.layerManager.getActiveLayer();
-    if (!layer || layer.locked) return;
+    if (!layer || this.doc.layerManager.isLayerEffectivelyLocked(layer)) return;
     const oldCell = layer.getCell(pos.x, pos.y);
     if (oldCell === null) return; // Already transparent
     this.pendingChanges.push({

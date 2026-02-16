@@ -284,17 +284,20 @@ html, body {
 
 /* === Left Panel (Layers) === */
 #left-panel {
-  width: clamp(120px, 16vw, 180px);
-  flex: 0 1 clamp(120px, 16vw, 180px);
+  width: clamp(160px, 20vw, 240px);
+  flex: 0 1 clamp(160px, 20vw, 240px);
   background: var(--bg-panel);
   border-right: 1px solid var(--border);
-  overflow-y: auto;
+  overflow: hidden;
   min-height: 0;
-  min-width: 110px;
+  min-width: 140px;
 }
 
 .layer-panel {
   padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .panel-header {
@@ -329,8 +332,36 @@ html, body {
   background: var(--bg-light);
 }
 
+.layer-action-icon {
+  width: 14px;
+  height: 14px;
+  display: block;
+  margin: 0 auto;
+  fill: currentColor;
+}
+
 .layer-list {
   padding: 4px 0;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.layer-quick-actions {
+  padding: 6px 8px 8px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel);
+  flex-shrink: 0;
+}
+
+.layer-quick-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
 }
 
 .layer-item {
@@ -339,7 +370,10 @@ html, body {
   padding: 4px 6px;
   gap: 4px;
   cursor: pointer;
-  border-left: 3px solid transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  position: relative;
+  margin: 1px 4px;
 }
 
 .layer-item:hover {
@@ -347,8 +381,8 @@ html, body {
 }
 
 .layer-item.active {
-  background: rgba(85, 85, 255, 0.15);
-  border-left-color: var(--accent);
+  background: rgba(85, 85, 255, 0.12);
+  box-shadow: inset 0 0 0 1px var(--accent);
 }
 
 .layer-vis-btn, .layer-lock-btn {
@@ -385,7 +419,6 @@ html, body {
 
 .layer-item[draggable] {
   cursor: grab;
-  position: relative;
 }
 
 .layer-item.dragging {
@@ -396,20 +429,26 @@ html, body {
   content: '';
   position: absolute;
   top: 0;
-  left: 0;
+  left: 6px;
   right: 0;
   height: 2px;
-  background: var(--accent);
+  background:
+    radial-gradient(circle, var(--accent) 0 3px, transparent 3.5px) 0 50% / 8px 8px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) 6px 0 / calc(100% - 6px) 2px no-repeat;
+  border-radius: 2px;
 }
 
 .layer-item.drop-below::after {
   content: '';
   position: absolute;
   bottom: 0;
-  left: 0;
+  left: 6px;
   right: 0;
   height: 2px;
-  background: var(--accent);
+  background:
+    radial-gradient(circle, var(--accent) 0 3px, transparent 3.5px) 0 50% / 8px 8px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) 6px 0 / calc(100% - 6px) 2px no-repeat;
+  border-radius: 2px;
 }
 
 .layer-name {
@@ -418,6 +457,228 @@ html, body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* === Layer Group Header === */
+.layer-group-header {
+  display: flex;
+  align-items: center;
+  padding: 4px 6px;
+  gap: 4px;
+  cursor: pointer;
+  background: var(--bg-medium);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  position: relative;
+  margin: 1px 4px;
+}
+
+.layer-group-header.active {
+  background: rgba(85, 85, 255, 0.12);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.layer-group-header:hover {
+  background: var(--bg-light);
+}
+
+.layer-group-header.dragging {
+  opacity: 0.4;
+}
+
+.layer-group-header.drop-above::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 6px;
+  right: 0;
+  height: 2px;
+  background:
+    radial-gradient(circle, var(--accent) 0 3px, transparent 3.5px) 0 50% / 8px 8px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) 6px 0 / calc(100% - 6px) 2px no-repeat;
+  border-radius: 2px;
+}
+
+.layer-group-header.drop-below::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 6px;
+  right: 0;
+  height: 2px;
+  background:
+    radial-gradient(circle, var(--accent) 0 3px, transparent 3.5px) 0 50% / 8px 8px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) 6px 0 / calc(100% - 6px) 2px no-repeat;
+  border-radius: 2px;
+}
+
+.layer-group-header.drop-inside::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20px;
+  right: 0;
+  height: 2px;
+  background:
+    radial-gradient(circle, var(--accent) 0 3px, transparent 3.5px) 0 50% / 8px 8px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) 6px 0 / calc(100% - 6px) 2px no-repeat;
+  border-radius: 2px;
+}
+
+.group-collapse-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 9px;
+  padding: 2px;
+  width: 16px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.group-collapse-btn:hover {
+  color: var(--text-primary);
+}
+
+.group-name {
+  flex: 1;
+  font-size: 12px;
+  font-weight: bold;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.layer-inline-rename {
+  flex: 1;
+  min-width: 0;
+  height: 20px;
+  padding: 0 6px;
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+}
+
+/* === Grouped Layer Indentation === */
+.layer-item.grouped {
+  padding-left: 20px;
+}
+
+.layer-item.group-hidden {
+  opacity: 0.5;
+}
+
+.layer-item.group-locked .layer-lock-btn {
+  color: var(--accent);
+}
+
+/* === Root Drop Zone (bottom of layer list) === */
+.layer-root-drop-zone {
+  min-height: 24px;
+  margin-top: 2px;
+  position: relative;
+}
+
+.layer-root-drop-zone.drop-root-target::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 6px;
+  right: 0;
+  height: 2px;
+  background:
+    radial-gradient(circle, var(--accent) 0 3px, transparent 3.5px) 0 50% / 8px 8px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) 6px 0 / calc(100% - 6px) 2px no-repeat;
+  border-radius: 2px;
+}
+
+.layer-row-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.layer-row-menu-trigger {
+  list-style: none;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 20px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.layer-row-menu-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.layer-row-menu[open] .layer-row-menu-trigger,
+.layer-row-menu-trigger:hover {
+  background: var(--bg-light);
+  color: var(--text-primary);
+}
+
+.layer-row-menu-list {
+  position: absolute;
+  top: 22px;
+  right: 0;
+  z-index: 30;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  background: var(--bg-medium);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+.layer-row-menu-item {
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  font-size: 12px;
+  padding: 5px 8px;
+  cursor: pointer;
+}
+
+.layer-row-menu-item:hover {
+  background: var(--bg-light);
+}
+
+.layer-row-menu-item.danger:hover {
+  background: var(--danger);
+  color: white;
+}
+
+.layer-drag-hint {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+  display: none;
+  max-width: 220px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-medium);
+  color: var(--text-primary);
+  font-size: 11px;
+  white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 /* === Canvas Container === */

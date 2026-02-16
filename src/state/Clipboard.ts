@@ -56,7 +56,7 @@ export class Clipboard {
   paste(targetX: number, targetY: number): void {
     if (!this.internalBuffer) return;
     const layer = this.doc.layerManager.getActiveLayer();
-    if (!layer || layer.locked) return;
+    if (!layer || this.doc.layerManager.isLayerEffectivelyLocked(layer)) return;
 
     const changes: CellChange[] = [];
     for (let y = 0; y < this.internalBuffer.height; y++) {
@@ -89,7 +89,7 @@ export class Clipboard {
       const text = await navigator.clipboard.readText();
       if (!text) return;
       const layer = this.doc.layerManager.getActiveLayer();
-      if (!layer || layer.locked) return;
+      if (!layer || this.doc.layerManager.isLayerEffectivelyLocked(layer)) return;
 
       const lines = text.split('\n');
       const changes: CellChange[] = [];

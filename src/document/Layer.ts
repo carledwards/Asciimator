@@ -7,6 +7,7 @@ export class Layer {
   name: string;
   visible: boolean;
   locked: boolean;
+  groupId: string | null;
   cells: LayerCell[][];
   private width: number;
   private height: number;
@@ -16,6 +17,7 @@ export class Layer {
     this.name = name ?? 'Layer';
     this.visible = true;
     this.locked = false;
+    this.groupId = null;
     this.width = width;
     this.height = height;
     this.cells = this.createEmptyGrid(width, height);
@@ -65,13 +67,15 @@ export class Layer {
   getHeight(): number { return this.height; }
 
   toData(): LayerData {
-    return {
+    const data: LayerData = {
       id: this.id,
       name: this.name,
       visible: this.visible,
       locked: this.locked,
       cells: this.cells.map(row => row.map(cell => cell ? { ...cell, attributes: { ...cell.attributes } } : null)),
     };
+    if (this.groupId) data.groupId = this.groupId;
+    return data;
   }
 
   static fromData(data: LayerData): Layer {
@@ -80,6 +84,7 @@ export class Layer {
     layer.name = data.name;
     layer.visible = data.visible;
     layer.locked = data.locked;
+    layer.groupId = data.groupId ?? null;
     layer.cells = data.cells.map(row => row.map(cell => cell ? { ...cell, attributes: { ...cell.attributes } } : null));
     return layer;
   }
@@ -88,6 +93,7 @@ export class Layer {
     const layer = new Layer(this.width, this.height, this.name);
     layer.visible = this.visible;
     layer.locked = this.locked;
+    layer.groupId = this.groupId;
     layer.cells = this.cells.map(row => row.map(cell => cell ? { ...cell, attributes: { ...cell.attributes } } : null));
     return layer;
   }

@@ -223,7 +223,7 @@ export class SelectionTool implements Tool {
   private completeMoveOperation(): void {
     if (!this.startPos || !this.endPos || !this.capturedCells || !this.moveOrigin) return;
     const layer = this.doc.layerManager.getActiveLayer();
-    if (!layer || layer.locked) {
+    if (!layer || this.doc.layerManager.isLayerEffectivelyLocked(layer)) {
       this.renderer.clearPreview();
       return;
     }
@@ -301,7 +301,7 @@ export class SelectionTool implements Tool {
   private eraseSelection(description: string): void {
     if (!this.startPos || !this.endPos) return;
     const layer = this.doc.layerManager.getActiveLayer();
-    if (!layer || layer.locked) return;
+    if (!layer || this.doc.layerManager.isLayerEffectivelyLocked(layer)) return;
 
     const x1 = Math.min(this.startPos.x, this.endPos.x);
     const y1 = Math.min(this.startPos.y, this.endPos.y);

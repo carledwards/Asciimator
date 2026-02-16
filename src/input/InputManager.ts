@@ -18,6 +18,13 @@ interface MouseDownEvent {
 export class InputManager {
   private toolManager!: ToolManager;
 
+  private isTypingTarget(target: EventTarget | null): boolean {
+    if (!(target instanceof HTMLElement)) return false;
+    if (target.isContentEditable) return true;
+    const tag = target.tagName;
+    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+  }
+
   constructor() {
     eventBus.on<MouseDownEvent>(Events.MOUSE_DOWN, (data) => {
       this.toolManager?.getActiveTool()?.onMouseDown(data.position, data.modifiers);
@@ -36,6 +43,7 @@ export class InputManager {
     });
 
     eventBus.on<KeyDownEvent>(Events.KEY_DOWN, (data) => {
+      if (this.isTypingTarget(data.raw.target)) return;
       // Handle global shortcuts first
       if (this.handleGlobalShortcut(data)) return;
       // Pass to active tool

@@ -310,10 +310,50 @@ export class TerminalPanel {
     this.element.appendChild(this.contentEl);
     this.container.appendChild(this.element);
 
+    const visible = localStorage.getItem('asciimator-console-visible') === 'true';
+    if (!visible) {
+      this.element.style.display = 'none';
+      this.isSuspended = true;
+    }
+
     document.addEventListener('visibilitychange', this.onVisibilityChange);
+    eventBus.on(Events.CONSOLE_TOGGLED, (show: unknown) => this.onConsoleToggled(show as boolean));
     this.wireEvents();
-    this.pushLine(this.pickFromPool(STARTUP_MESSAGES));
-    this.resetIdleTimers();
+
+    if (visible) {
+      this.pushLine(this.pickFromPool(STARTUP_MESSAGES));
+      this.resetIdleTimers();
+    }
+  }
+
+  private onConsoleToggled(show: boolean): void {
+    if (show) {
+      this.element.style.display = '';
+      this.isSuspended = false;
+      this.pushLine(this.pickFromPool(STARTUP_MESSAGES));
+      this.resetIdleTimers();
+      this.kickTypewriter();
+    } else {
+      this.element.style.display = 'none';
+      // Suspend: clear queue, typing state, and idle timers
+      this.queue = [];
+      this.typing = false;
+      this.typingEntry = null;
+      this.typingIndex = 0;
+      if (this.typingTimer) {
+        window.clearTimeout(this.typingTimer);
+        this.typingTimer = null;
+      }
+      if (this.idleTimeout) {
+        window.clearTimeout(this.idleTimeout);
+        this.idleTimeout = null;
+      }
+      if (this.idleInterval) {
+        window.clearInterval(this.idleInterval);
+        this.idleInterval = null;
+      }
+      this.isSuspended = true;
+    }
   }
 
   private onVisibilityChange = (): void => {

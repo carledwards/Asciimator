@@ -155,7 +155,7 @@ export class SmartBoxTool implements Tool {
 
   private commitBox(start: Position, end: Position): void {
     const layer = this.doc.layerManager.getActiveLayer();
-    if (!layer || layer.locked) return;
+    if (!layer || this.doc.layerManager.isLayerEffectivelyLocked(layer)) return;
 
     const points = this.getSmartBoxPoints(start, end);
     const changes: CellChange[] = [];

@@ -8,6 +8,8 @@ interface ToolDragInfo {
   lines: string[];
 }
 
+type BackdropMode = 'solid' | 'checker';
+
 // Box-drawing characters rendered as canvas line segments for pixel-perfect connections.
 // Each entry is an array of [x1, y1, x2, y2] in normalized [0,1] cell coordinates.
 type LineSeg = [number, number, number, number];
@@ -54,7 +56,6 @@ export class CanvasRenderer {
   private charHeight: number = 0;
   private animationFrameId: number | null = null;
   private isDirty = true;
-  private showGrid = false;
   private zoom = 1;
 
   // Cursor overlay
@@ -72,6 +73,10 @@ export class CanvasRenderer {
 
   // Move guide lines
   private moveGuides = false;
+  private backdropMode: BackdropMode;
+  private readonly backdropSolid = '#1b2238';
+  private readonly checkerA = '#cccccc';
+  private readonly checkerB = '#999999';
 
   constructor(
     private container: HTMLElement,
@@ -83,6 +88,8 @@ export class CanvasRenderer {
     container.appendChild(this.canvas);
 
     this.ctx = this.canvas.getContext('2d')!;
+    const storedBackdrop = localStorage.getItem('asciimator-canvas-backdrop');
+    this.backdropMode = storedBackdrop === 'checker' ? 'checker' : 'solid';
     this.calculateDimensions();
 
     eventBus.on(Events.RENDER_REQUEST, () => this.markDirty());
@@ -91,12 +98,12 @@ export class CanvasRenderer {
       this.calculateDimensions();
       this.markDirty();
     });
-    eventBus.on(Events.GRID_TOGGLED, (show: unknown) => {
-      this.showGrid = show as boolean;
-      this.markDirty();
-    });
     eventBus.on<ToolDragInfo | null>(Events.TOOL_DRAG_INFO, (info) => {
       this.toolDragInfo = info;
+      this.markDirty();
+    });
+    eventBus.on<{ mode: BackdropMode }>(Events.CANVAS_BACKDROP_CHANGED, (payload) => {
+      this.backdropMode = payload.mode === 'checker' ? 'checker' : 'solid';
       this.markDirty();
     });
   }
@@ -213,11 +220,6 @@ export class CanvasRenderer {
       }
     }
 
-    // Draw grid
-    if (this.showGrid) {
-      this.drawGrid(w, h);
-    }
-
     // Draw selection
     if (this.selectionStart && this.selectionEnd) {
       this.drawSelection();
@@ -236,12 +238,18 @@ export class CanvasRenderer {
     }
   }
 
-  private drawCheckerboard(px: number, py: number): void {
+  private drawTransparentBackdrop(px: number, py: number): void {
+    if (this.backdropMode === 'solid') {
+      this.ctx.fillStyle = this.backdropSolid;
+      this.ctx.fillRect(px, py, this.charWidth, this.charHeight);
+      return;
+    }
+
     const halfW = this.charWidth / 2;
     const halfH = this.charHeight / 2;
     for (let row = 0; row < 2; row++) {
       for (let col = 0; col < 2; col++) {
-        this.ctx.fillStyle = (row + col) % 2 === 0 ? '#cccccc' : '#999999';
+        this.ctx.fillStyle = (row + col) % 2 === 0 ? this.checkerA : this.checkerB;
         this.ctx.fillRect(px + col * halfW, py + row * halfH, halfW, halfH);
       }
     }
@@ -253,7 +261,7 @@ export class CanvasRenderer {
 
     // Background
     if (bgTransparent) {
-      this.drawCheckerboard(px, py);
+      this.drawTransparentBackdrop(px, py);
     } else {
       this.ctx.fillStyle = getPaletteColor(cell.attributes.background);
       this.ctx.fillRect(px, py, this.charWidth, this.charHeight);
@@ -463,23 +471,5 @@ export class CanvasRenderer {
     }
   }
 
-  private drawGrid(w: number, h: number): void {
-    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-    this.ctx.lineWidth = 0.5;
-    for (let x = 0; x <= w; x++) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(x * this.charWidth, 0);
-      this.ctx.lineTo(x * this.charWidth, h * this.charHeight);
-      this.ctx.stroke();
-    }
-    for (let y = 0; y <= h; y++) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(0, y * this.charHeight);
-      this.ctx.lineTo(w * this.charWidth, y * this.charHeight);
-      this.ctx.stroke();
-    }
-  }
-
   getZoom(): number { return this.zoom; }
-  getShowGrid(): boolean { return this.showGrid; }
 }

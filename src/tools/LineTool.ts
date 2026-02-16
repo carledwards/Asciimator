@@ -112,7 +112,7 @@ export class LineTool implements Tool {
 
   private commitLine(start: Position, end: Position): void {
     const layer = this.doc.layerManager.getActiveLayer();
-    if (!layer || layer.locked) return;
+    if (!layer || this.doc.layerManager.isLayerEffectivelyLocked(layer)) return;
 
     const points = this.getLinePoints(start, end);
     const changes: CellChange[] = [];

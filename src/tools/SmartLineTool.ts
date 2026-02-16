@@ -170,7 +170,7 @@ export class SmartLineTool implements Tool {
 
   private commitLine(start: Position, end: Position): void {
     const layer = this.doc.layerManager.getActiveLayer();
-    if (!layer || layer.locked) return;
+    if (!layer || this.doc.layerManager.isLayerEffectivelyLocked(layer)) return;
 
     const points = this.getSmartLinePoints(start, end);
     const planned = this.getPlannedConnections(points);

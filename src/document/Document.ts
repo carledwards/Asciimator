@@ -26,7 +26,7 @@ export class Document {
 
   setCellOnActive(x: number, y: number, cell: LayerCell): void {
     const layer = this.layerManager.getActiveLayer();
-    if (layer && !layer.locked) {
+    if (layer && !this.layerManager.isLayerEffectivelyLocked(layer)) {
       layer.setCell(x, y, cell);
       eventBus.emit(Events.DOCUMENT_CHANGED, null);
       eventBus.emit(Events.RENDER_REQUEST, null);
@@ -38,12 +38,15 @@ export class Document {
   }
 
   toData(): DocumentData {
-    return {
+    const groups = this.layerManager.getGroups().map(g => g.toData());
+    const data: DocumentData = {
       width: this.width,
       height: this.height,
       layers: this.layerManager.getLayers().map(l => l.toData()),
       activeLayerId: this.layerManager.getActiveLayerId(),
     };
+    if (groups.length > 0) data.groups = groups;
+    return data;
   }
 
   resize(newWidth: number, newHeight: number): void {

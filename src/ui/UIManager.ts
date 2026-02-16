@@ -71,7 +71,7 @@ export class UIManager {
     const leftPanel = document.createElement('div');
     leftPanel.id = 'left-panel';
     mainArea.appendChild(leftPanel);
-    this.layerPanel = new LayerPanel(leftPanel, this.doc.layerManager);
+    this.layerPanel = new LayerPanel(leftPanel, this.doc.layerManager, this.undoManager);
 
     // Center panel (canvas + terminal)
     const centerPanel = document.createElement('div');

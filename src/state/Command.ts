@@ -1,5 +1,6 @@
 import { Cell, LayerCell } from '../core/types';
 import { Document } from '../document/Document';
+import { LayerManager, LayerManagerState } from '../document/LayerManager';
 import { eventBus, Events } from '../core/EventBus';
 
 export interface Command {
@@ -43,6 +44,27 @@ export class CellChangeCommand implements Command {
     for (const change of this.changes) {
       layer.forceSetCell(change.x, change.y, change.oldCell);
     }
+    eventBus.emit(Events.DOCUMENT_CHANGED, null);
+    eventBus.emit(Events.RENDER_REQUEST, null);
+  }
+}
+
+export class LayerStructureCommand implements Command {
+  constructor(
+    private layerManager: LayerManager,
+    private before: LayerManagerState,
+    private after: LayerManagerState,
+    public description: string,
+  ) {}
+
+  execute(): void {
+    this.layerManager.restoreState(this.after);
+    eventBus.emit(Events.DOCUMENT_CHANGED, null);
+    eventBus.emit(Events.RENDER_REQUEST, null);
+  }
+
+  undo(): void {
+    this.layerManager.restoreState(this.before);
     eventBus.emit(Events.DOCUMENT_CHANGED, null);
     eventBus.emit(Events.RENDER_REQUEST, null);
   }

@@ -98,7 +98,7 @@ export class TextTool implements Tool {
   private typeChar(ch: string): void {
     if (!this.cursorPos) return;
     const layer = this.doc.layerManager.getActiveLayer();
-    if (!layer || layer.locked) return;
+    if (!layer || this.doc.layerManager.isLayerEffectivelyLocked(layer)) return;
 
     const oldCell = layer.getCell(this.cursorPos.x, this.cursorPos.y);
     const newCell: Cell = {

@@ -12,7 +12,7 @@ export function importPlainText(
   background: number = 0,
 ): void {
   const layer = doc.layerManager.getActiveLayer();
-  if (!layer || layer.locked) return;
+  if (!layer || doc.layerManager.isLayerEffectivelyLocked(layer)) return;
 
   const lines = text.split('\n');
   const changes: CellChange[] = [];

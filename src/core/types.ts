@@ -22,6 +22,17 @@ export interface LayerData {
   visible: boolean;
   locked: boolean;
   cells: LayerCell[][];
+  groupId?: string;
+}
+
+export interface LayerGroupData {
+  id: string;
+  name: string;
+  visible: boolean;
+  locked: boolean;
+  collapsed: boolean;
+  order?: number;
+  kind?: 'layer' | 'animation';
 }
 
 export interface DocumentData {
@@ -29,6 +40,7 @@ export interface DocumentData {
   height: number;
   layers: LayerData[];
   activeLayerId: string;
+  groups?: LayerGroupData[];
 }
 
 export interface InputModifiers {

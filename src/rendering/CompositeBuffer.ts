@@ -39,7 +39,7 @@ export class CompositeBuffer {
 
     // Bottom-to-top compositing with per-attribute merge
     for (const layer of layers) {
-      if (!layer.visible) continue;
+      if (!this.layerManager.isLayerEffectivelyVisible(layer)) continue;
       for (let y = 0; y < this.height; y++) {
         for (let x = 0; x < this.width; x++) {
           const cell = layer.getCell(x, y);

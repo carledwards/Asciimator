@@ -43,7 +43,7 @@ export class FillTool implements Tool {
 
   private floodFill(start: Position): void {
     const layer = this.doc.layerManager.getActiveLayer();
-    if (!layer || layer.locked) return;
+    if (!layer || this.doc.layerManager.isLayerEffectivelyLocked(layer)) return;
 
     const targetCell = layer.getCell(start.x, start.y);
     const targetChar = targetCell?.char ?? ' ';

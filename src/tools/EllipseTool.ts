@@ -155,7 +155,7 @@ export class EllipseTool implements Tool {
 
   private commitEllipse(start: Position, end: Position): void {
     const layer = this.doc.layerManager.getActiveLayer();
-    if (!layer || layer.locked) return;
+    if (!layer || this.doc.layerManager.isLayerEffectivelyLocked(layer)) return;
 
     const points = this.getEllipsePoints(start, end);
     const changes: CellChange[] = [];

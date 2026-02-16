@@ -65,7 +65,7 @@ export class PencilTool implements Tool {
 
   private drawAt(pos: Position): void {
     const layer = this.doc.layerManager.getActiveLayer();
-    if (!layer || layer.locked) return;
+    if (!layer || this.doc.layerManager.isLayerEffectivelyLocked(layer)) return;
     const oldCell = layer.getCell(pos.x, pos.y);
     const newCell: Cell = {
       char: this.currentChar,

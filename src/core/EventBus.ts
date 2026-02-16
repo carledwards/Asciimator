@@ -45,9 +45,11 @@ export const Events = {
   SELECTION_CHANGED: 'selection:changed',
   RENDER_REQUEST: 'render:request',
   ZOOM_CHANGED: 'zoom:changed',
-  GRID_TOGGLED: 'grid:toggled',
+
   TAB_CHANGED: 'tab:changed',
   TAB_LIST_CHANGED: 'tab:list:changed',
   BOX_STYLE_CHANGED: 'boxStyle:changed',
   TOOL_DRAG_INFO: 'tool:dragInfo',
+  CONSOLE_TOGGLED: 'console:toggled',
+  CANVAS_BACKDROP_CHANGED: 'canvasBackdrop:changed',
 } as const;

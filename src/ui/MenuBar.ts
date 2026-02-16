@@ -27,6 +27,8 @@ interface MenuConfig {
   items: MenuItem[];
 }
 
+type BackdropMode = 'solid' | 'checker';
+
 export class MenuBar {
   private element: HTMLElement;
   private openMenu: string | null = null;
@@ -71,6 +73,7 @@ export class MenuBar {
   }
 
   private getMenus(): MenuConfig[] {
+    const backdropMode = this.getBackdropMode();
     return [
       {
         label: 'File',
@@ -109,7 +112,20 @@ export class MenuBar {
       {
         label: 'View',
         items: [
-          { label: 'Toggle Grid', action: () => this.toggleGrid(), shortcut: 'G' },
+{ label: 'Console', action: () => this.toggleConsole() },
+          {
+            label: 'Backdrop',
+            submenu: [
+              {
+                label: `${backdropMode === 'solid' ? '✓ ' : ''}Solid`,
+                action: () => this.setBackdropMode('solid'),
+              },
+              {
+                label: `${backdropMode === 'checker' ? '✓ ' : ''}Checker`,
+                action: () => this.setBackdropMode('checker'),
+              },
+            ],
+          },
           { label: 'Zoom In', action: () => this.setZoom(1), shortcut: '+' },
           { label: 'Zoom Out', action: () => this.setZoom(-1), shortcut: '-' },
           { label: 'Reset Zoom', action: () => eventBus.emit(Events.ZOOM_CHANGED, 1), shortcut: '0' },
@@ -384,7 +400,7 @@ export class MenuBar {
         if (typeof parsed.width === 'number' && typeof parsed.height === 'number') {
           this.doc.resize(parsed.width, parsed.height);
         }
-        this.doc.layerManager.loadLayers(parsed.layers, parsed.activeLayerId);
+        this.doc.layerManager.loadLayers(parsed.layers, parsed.activeLayerId, parsed.groups);
         this.undoManager.clear();
         eventBus.emit(Events.DOCUMENT_CHANGED, null);
         eventBus.emit(Events.RENDER_REQUEST, null);
@@ -400,9 +416,21 @@ export class MenuBar {
     this.tabManager.closeTab(active.id);
   }
 
-  private toggleGrid(): void {
-    const current = this.canvasRenderer.getShowGrid();
-    eventBus.emit(Events.GRID_TOGGLED, !current);
+  private toggleConsole(): void {
+    const current = localStorage.getItem('asciimator-console-visible') === 'true';
+    const next = !current;
+    localStorage.setItem('asciimator-console-visible', String(next));
+    eventBus.emit(Events.CONSOLE_TOGGLED, next);
+  }
+
+  private getBackdropMode(): BackdropMode {
+    const stored = localStorage.getItem('asciimator-canvas-backdrop');
+    return stored === 'checker' ? 'checker' : 'solid';
+  }
+
+  private setBackdropMode(mode: BackdropMode): void {
+    localStorage.setItem('asciimator-canvas-backdrop', mode);
+    eventBus.emit(Events.CANVAS_BACKDROP_CHANGED, { mode });
   }
 
   private setZoom(delta: number): void {
@@ -431,8 +459,7 @@ export class MenuBar {
       'Ctrl/Cmd+V - Paste',
       'Delete/Backspace - Delete selection contents',
       'Drag inside selection - Move selection',
-      'G - Toggle grid',
-      '+ / - - Zoom in/out',
+'+ / - - Zoom in/out',
     ];
     alert('Keyboard Shortcuts:\n\n' + shortcuts.join('\n'));
   }
