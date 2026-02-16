@@ -67,6 +67,16 @@ export class LayerManager {
     eventBus.emit(Events.LAYER_CHANGED, null);
   }
 
+  moveLayerToIndex(id: string, newIndex: number): void {
+    const idx = this.layers.findIndex(l => l.id === id);
+    if (idx === -1) return;
+    if (newIndex < 0 || newIndex >= this.layers.length) return;
+    if (idx === newIndex) return;
+    const [layer] = this.layers.splice(idx, 1);
+    this.layers.splice(newIndex, 0, layer);
+    eventBus.emit(Events.LAYER_CHANGED, null);
+  }
+
   renameLayer(id: string, name: string): void {
     const layer = this.getLayerById(id);
     if (layer) {

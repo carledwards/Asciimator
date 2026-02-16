@@ -3,6 +3,8 @@ import { eventBus, Events } from '../core/EventBus';
 
 export class LayerPanel {
   private element: HTMLElement;
+  private draggedLayerId: string | null = null;
+  private draggedVisualIndex: number = -1;
 
   setLayerManager(layerManager: LayerManager): void {
     this.layerManager = layerManager;
@@ -73,9 +75,19 @@ export class LayerPanel {
     const layers = [...this.layerManager.getLayers()].reverse();
     const activeId = this.layerManager.getActiveLayerId();
 
-    for (const layer of layers) {
+    for (let visualIndex = 0; visualIndex < layers.length; visualIndex++) {
+      const layer = layers[visualIndex];
       const item = document.createElement('div');
       item.className = `layer-item ${layer.id === activeId ? 'active' : ''}`;
+      item.draggable = true;
+      item.dataset.layerId = layer.id;
+      item.dataset.visualIndex = String(visualIndex);
+
+      // Drag handle
+      const handle = document.createElement('span');
+      handle.className = 'layer-drag-handle';
+      handle.textContent = '⠿';
+      item.appendChild(handle);
 
       // Visibility toggle
       const visBtn = document.createElement('button');
@@ -108,26 +120,78 @@ export class LayerPanel {
       });
       item.appendChild(name);
 
-      // Move buttons
-      const moveUp = document.createElement('button');
-      moveUp.className = 'layer-move-btn';
-      moveUp.textContent = '▲';
-      moveUp.title = 'Move up';
-      moveUp.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.layerManager.moveLayer(layer.id, 'up');
+      // Drag events
+      item.addEventListener('dragstart', (e) => {
+        this.draggedLayerId = layer.id;
+        this.draggedVisualIndex = visualIndex;
+        item.classList.add('dragging');
+        e.dataTransfer!.effectAllowed = 'move';
+        e.dataTransfer!.setData('text/plain', layer.id);
       });
-      item.appendChild(moveUp);
 
-      const moveDown = document.createElement('button');
-      moveDown.className = 'layer-move-btn';
-      moveDown.textContent = '▼';
-      moveDown.title = 'Move down';
-      moveDown.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.layerManager.moveLayer(layer.id, 'down');
+      item.addEventListener('dragend', () => {
+        this.draggedLayerId = null;
+        this.draggedVisualIndex = -1;
+        item.classList.remove('dragging');
+        list.querySelectorAll('.layer-item').forEach(el => {
+          el.classList.remove('drop-above', 'drop-below');
+        });
       });
-      item.appendChild(moveDown);
+
+      item.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (!this.draggedLayerId || this.draggedLayerId === layer.id) return;
+        e.dataTransfer!.dropEffect = 'move';
+
+        // Clear indicators on all other items
+        list.querySelectorAll('.layer-item').forEach(el => {
+          if (el !== item) el.classList.remove('drop-above', 'drop-below');
+        });
+
+        const rect = item.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        if (e.clientY < midY) {
+          item.classList.add('drop-above');
+          item.classList.remove('drop-below');
+        } else {
+          item.classList.add('drop-below');
+          item.classList.remove('drop-above');
+        }
+      });
+
+      item.addEventListener('dragleave', (e) => {
+        // Only remove if actually leaving the item (not entering a child)
+        if (!item.contains(e.relatedTarget as Node)) {
+          item.classList.remove('drop-above', 'drop-below');
+        }
+      });
+
+      item.addEventListener('drop', (e) => {
+        e.preventDefault();
+        list.querySelectorAll('.layer-item').forEach(el => {
+          el.classList.remove('drop-above', 'drop-below');
+        });
+        if (!this.draggedLayerId || this.draggedLayerId === layer.id) return;
+
+        const rect = item.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        const dropAbove = e.clientY < midY;
+
+        // Convert visual drop position to array index.
+        // Visual list is reversed: visual index 0 = top = highest array index.
+        // gap = insertion point in visual list (0=top, N=bottom)
+        const tvi = visualIndex;
+        const dvi = this.draggedVisualIndex;
+        const N = layers.length;
+        const gap = dropAbove ? tvi : tvi + 1;
+        // Adjust gap for the removal of the dragged item
+        const effectiveGap = dvi < gap ? gap - 1 : gap;
+        const targetArrayIndex = Math.max(0, Math.min(N - 1, N - 1 - effectiveGap));
+
+        this.layerManager.moveLayerToIndex(this.draggedLayerId, targetArrayIndex);
+        this.draggedLayerId = null;
+        this.draggedVisualIndex = -1;
+      });
 
       // Select layer on click
       item.addEventListener('click', () => {

@@ -351,7 +351,7 @@ html, body {
   border-left-color: var(--accent);
 }
 
-.layer-vis-btn, .layer-lock-btn, .layer-move-btn {
+.layer-vis-btn, .layer-lock-btn {
   background: none;
   border: none;
   color: var(--text-secondary);
@@ -365,8 +365,51 @@ html, body {
   justify-content: center;
 }
 
-.layer-vis-btn:hover, .layer-lock-btn:hover, .layer-move-btn:hover {
+.layer-vis-btn:hover, .layer-lock-btn:hover {
   color: var(--text-primary);
+}
+
+.layer-drag-handle {
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: grab;
+  width: 16px;
+  text-align: center;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.layer-drag-handle:hover {
+  color: var(--text-primary);
+}
+
+.layer-item[draggable] {
+  cursor: grab;
+  position: relative;
+}
+
+.layer-item.dragging {
+  opacity: 0.4;
+}
+
+.layer-item.drop-above::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+}
+
+.layer-item.drop-below::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
 }
 
 .layer-name {
